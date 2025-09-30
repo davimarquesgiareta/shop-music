@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google"; // Importa a fonte correta e padrão
+import { Inter } from "next/font/google";
 import "./globals.css";
+import QueryProvider from "@/components/providers/QueryProvider";
 
-// Inicializa a fonte
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -17,9 +17,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      {/* Aplica a classe da fonte ao body */}
       <body className={inter.className}>
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );

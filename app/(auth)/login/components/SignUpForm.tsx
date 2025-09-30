@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUpSchema, TSignUpSchema } from "@/lib/validations/auth";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,31 +14,48 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
 
-export default function SignUpForm() {
+export function SignUpForm() {
+  const router = useRouter();
   const form = useForm<TSignUpSchema>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       name: "",
       email: "",
       password: "",
-      age: undefined,
-      dateOfBirth: undefined,
+      age: 18,
+      dateOfBirth: new Date(),
       gender: "other",
       profileDescription: "",
     },
   });
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: (values: TSignUpSchema) => {
+      return axios.post("/api/auth/register", values);
+    },
+    onSuccess: () => {
+      router.push("/");
+    },
+    onError: (error) => {
+      console.error("Registration error:", error);
+      alert(
+        "An error occurred while creating the account. Please check your data or try again."
+      );
+    },
+  });
+
   function onSubmit(values: TSignUpSchema) {
-    // TODO: Implementar a lógica de cadastro aqui (ex: chamada de API)
-    console.log("Sign Up data:", values);
-    alert("Account created! Check the console.");
+    mutate(values);
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <h2 className="text-2xl font-bold text-center">Create an Account</h2>
+        <h2 className="text-2xl font-bold text-center">Create Account</h2>
 
         <FormField
           control={form.control}
@@ -48,13 +64,12 @@ export default function SignUpForm() {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input placeholder="Your Full Name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="email"
@@ -72,7 +87,6 @@ export default function SignUpForm() {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="password"
@@ -86,7 +100,6 @@ export default function SignUpForm() {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="age"
@@ -94,13 +107,12 @@ export default function SignUpForm() {
             <FormItem>
               <FormLabel>Age</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="Ex: 18" {...field} />
+                <Input type="number" placeholder="18" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="dateOfBirth"
@@ -122,7 +134,6 @@ export default function SignUpForm() {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="gender"
@@ -136,7 +147,6 @@ export default function SignUpForm() {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="profileDescription"
@@ -145,7 +155,7 @@ export default function SignUpForm() {
               <FormLabel>Profile Description</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Tell us a little bit about yourself"
+                  placeholder="Tell us a little bit about yourself..."
                   {...field}
                 />
               </FormControl>
@@ -154,8 +164,8 @@ export default function SignUpForm() {
           )}
         />
 
-        <Button type="submit" className="w-full">
-          Create Account
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Creating account..." : "Create Account"}
         </Button>
       </form>
     </Form>
