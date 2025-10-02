@@ -3,6 +3,9 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUpSchema, TSignUpSchema } from "@/lib/validations/auth";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -21,12 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
 
 export function SignUpForm() {
-  const router = useRouter();
   const form = useForm<TSignUpSchema>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -45,7 +44,8 @@ export function SignUpForm() {
       return axios.post("/api/auth/register", values);
     },
     onSuccess: () => {
-      router.push("/");
+      // Forçar um recarregamento completo para a página inicial.
+      window.location.href = "/";
     },
     onError: (error) => {
       console.error("Registration error:", error);
@@ -63,7 +63,6 @@ export function SignUpForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <h2 className="text-2xl font-bold text-center">Create Account</h2>
-
         <FormField
           control={form.control}
           name="name"
@@ -84,7 +83,11 @@ export function SignUpForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="email@example.com" type="email" {...field} />
+                <Input
+                  placeholder="email@example.com"
+                  type="email"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -116,7 +119,6 @@ export function SignUpForm() {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="dateOfBirth"
@@ -126,29 +128,31 @@ export function SignUpForm() {
               <FormControl>
                 <Input
                   type="date"
-                  value={field.value instanceof Date ? field.value.toISOString().split("T")[0] : ""}
-                  onChange={(e) => field.onChange(e.target.valueAsDate)}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                  ref={field.ref}
+                  {...field}
+                  value={
+                    field.value instanceof Date
+                      ? field.value.toISOString().split("T")[0]
+                      : ""
+                  }
+                  onChange={(e) => {
+                    field.onChange(e.target.valueAsDate);
+                  }}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="gender"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Gender</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  {/* --- CORREÇÃO AQUI --- */}
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select your gender" />
+                    <SelectValue placeholder="Select a gender" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -161,7 +165,6 @@ export function SignUpForm() {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="profileDescription"
@@ -178,7 +181,6 @@ export function SignUpForm() {
             </FormItem>
           )}
         />
-
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending ? "Creating account..." : "Create Account"}
         </Button>
@@ -186,4 +188,3 @@ export function SignUpForm() {
     </Form>
   );
 }
-

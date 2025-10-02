@@ -2,8 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
-  const { email, password } = await request.json();
+export async function GET() {
   const cookieStore = cookies();
 
   const supabase = createServerClient(
@@ -24,14 +23,18 @@ export async function POST(request: Request) {
     }
   );
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { data: categories, error } = await supabase
+    .from("categories")
+    .select("id, name")
+    .order("name", { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 401 });
+    console.error("Error fetching categories:", error);
+    return NextResponse.json(
+      { error: "Could not fetch categories." },
+      { status: 500 }
+    );
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json(categories);
 }

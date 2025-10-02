@@ -22,8 +22,7 @@ export const signUpSchema = z.object({
     .string()
     .max(500, { message: "Description must be less than 500 characters." })
     .optional(),
-
-  email: z.string().email({ message: "Please enter a valid email." }),
+  email: z.string().email({ message: "Please enter a valid email." }), // Corrigido
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters long." }),

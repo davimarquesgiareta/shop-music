@@ -3,6 +3,9 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, TLoginSchema } from "@/lib/validations/auth";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -13,12 +16,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
 
 export function LoginForm() {
-  const router = useRouter();
   const form = useForm<TLoginSchema>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
@@ -29,11 +28,13 @@ export function LoginForm() {
       return axios.post("/api/auth/login", values);
     },
     onSuccess: () => {
-      router.push("/");
+      // SOLUÇÃO DEFINITIVA: Forçar um recarregamento completo para a página inicial.
+      // Isto garante que o cookie de sessão é lido pelo servidor na nova página.
+      window.location.href = "/";
     },
     onError: (error) => {
       console.error("Login error:", error);
-      alert("Login failed. Please check your credentials and try again.");
+      alert("Invalid credentials. Please try again.");
     },
   });
 
@@ -45,6 +46,7 @@ export function LoginForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <h2 className="text-2xl font-bold text-center">Login</h2>
+
         <FormField
           control={form.control}
           name="email"
@@ -62,6 +64,7 @@ export function LoginForm() {
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="password"
@@ -75,6 +78,7 @@ export function LoginForm() {
             </FormItem>
           )}
         />
+
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending ? "Signing in..." : "Sign In"}
         </Button>

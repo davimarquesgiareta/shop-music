@@ -1,4 +1,5 @@
-import { supabase } from "@/lib/supabase/server";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -11,6 +12,25 @@ export async function POST(request: Request) {
     dateOfBirth,
     profileDescription,
   } = await request.json();
+  const cookieStore = cookies();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          cookieStore.set({ name, value, ...options });
+        },
+        remove(name: string, options: CookieOptions) {
+          cookieStore.delete(name);
+        },
+      },
+    }
+  );
 
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
@@ -23,7 +43,6 @@ export async function POST(request: Request) {
   }
 
   if (!authData.user) {
-    console.error("O objeto do utilizador não foi retornado pelo Supabase.");
     return NextResponse.json(
       { error: "O utilizador não pôde ser criado." },
       { status: 500 }
@@ -31,7 +50,7 @@ export async function POST(request: Request) {
   }
 
   const { error: profileError } = await supabase.from("profiles").insert({
-    id: authData.user.id, 
+    id: authData.user.id,
     name,
     age,
     gender,
@@ -46,5 +65,6 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+
   return NextResponse.json(authData);
 }

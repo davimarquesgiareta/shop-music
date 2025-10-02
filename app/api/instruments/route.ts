@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { instrumentSchema } from "@/lib/validations/instrument";
@@ -14,11 +14,11 @@ export async function POST(request: Request) {
         get(name: string) {
           return cookieStore.get(name)?.value;
         },
-        set(name: string, value: string, options: any) {
+        set(name: string, value: string, options: CookieOptions) {
           cookieStore.set({ name, value, ...options });
         },
-        remove(name: string, options: any) {
-          cookieStore.set({ name, value: "", ...options, maxAge: 0 });
+        remove(name: string, options: CookieOptions) {
+          cookieStore.delete(name);
         },
       },
     }
@@ -37,7 +37,6 @@ export async function POST(request: Request) {
 
   try {
     const requestData = await request.json();
-
     const validatedData = instrumentSchema.parse(requestData);
 
     const { data: newInstrument, error: insertError } = await supabase
