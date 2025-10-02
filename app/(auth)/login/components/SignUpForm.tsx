@@ -14,6 +14,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
@@ -77,11 +84,7 @@ export function SignUpForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="email@example.com"
-                  type="email"
-                  {...field}
-                />
+                <Input placeholder="email@example.com" type="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -113,6 +116,7 @@ export function SignUpForm() {
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="dateOfBirth"
@@ -122,31 +126,42 @@ export function SignUpForm() {
               <FormControl>
                 <Input
                   type="date"
-                  {...field}
-                  value={
-                    field.value instanceof Date
-                      ? field.value.toISOString().split("T")[0]
-                      : ""
-                  }
+                  value={field.value instanceof Date ? field.value.toISOString().split("T")[0] : ""}
+                  onChange={(e) => field.onChange(e.target.valueAsDate)}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="gender"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Gender (male, female, other)</FormLabel>
-              <FormControl>
-                <Input placeholder="male" {...field} />
-              </FormControl>
+              <FormLabel>Gender</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  {/* --- CORREÇÃO AQUI --- */}
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select your gender" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="profileDescription"
@@ -171,3 +186,4 @@ export function SignUpForm() {
     </Form>
   );
 }
+
